@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Socket</title>
+    <script
+      src="https://cdn.socket.io/4.2.0/socket.io.min.js"
+      integrity="sha384-PiBR5S00EtOj2Lto9Uu81cmoyZqR57XcOna1oAuVuIEjzj0wpqDVfD0JA9eXlRsj"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+  <div>Online now: <span id = "info"></span></div>
+    <input id="input" type="text" autofocus />
+    <button id="button">Send</button>
+    <div id="messages"></div>
+    <script>
+      const socket = io("localhost:8085");
+      const messageBlock = document.querySelector("#messages");
+      const button = document.querySelector("#button");
+      const input = document.querySelector("#input");
+      const info = document.querySelector("#info");
+      let name = '';
+
+      button.addEventListener("click", () => {
+        const data = {
+          message: name + ': ' +input.value,
+        };
+
+        socket.emit("newMessage", data);
+      });
+
+      socket.on("connect", () => {
+        name = prompt('Ваше имя','');
+        socket.emit('newUser', name);
+        console.log("Connected to chat! ", name);
+      });
+
+      socket.on("newUser", (data) => {
+        input.value = "";
+        messageBlock.insertAdjacentHTML(
+          "beforeend",
+          `<div style="color:blue">User ${data} is online now</div>`
+
+        );
+      });
+
+      socket.on("newMessage", (data) => {
+        input.value = "";
+        messageBlock.insertAdjacentHTML(
+                "beforeend",
+                `<div>${data.message}</div>`
+        );
+      });
+
+      socket.on("userLeft", (data) => {
+        input.value = "";
+        messageBlock.insertAdjacentHTML(
+                "beforeend",
+                `<div style="color:darkred">User ${data} left chat</div>`
+
+        );
+      });
+      socket.on("infoUpdate", (count) => {
+        info.textContent = count;
+      });
+
+    </script>
+  </body>
+</html>
